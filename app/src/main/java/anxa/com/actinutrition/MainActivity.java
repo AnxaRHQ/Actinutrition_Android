@@ -6,10 +6,12 @@ import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
 import android.webkit.WebChromeClient;
@@ -28,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     String URLPath = "";
     public String contentString = "";
     Boolean isConnected = false;
+
+    final String appShortName = "Actinutrition";
 
 
     ProgressBar myProgressBar;
@@ -87,6 +91,13 @@ public class MainActivity extends AppCompatActivity {
             loadWebPage();
             isConnected = true;
         }
+
+        //custom user agent
+        String defaultagent = mainContentWebView.getSettings().getUserAgentString();
+        if (defaultagent == null)
+            defaultagent = getDefaultUserAgent();
+        mainContentWebView.getSettings().setUserAgentString(appShortName + "/" + BuildConfig.VERSION_NAME + " " + getDeviceName() +  " Mobile " + defaultagent);
+        //System.out.println(appShortName + "/" + BuildConfig.VERSION_NAME + " " + getDeviceName() +  " Mobile " + defaultagent);
     }
 
 
@@ -219,6 +230,67 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
+    /* Custom userAget */
+    private static String getDefaultUserAgent() {
+        StringBuilder result = new StringBuilder(64);
+        result.append("Dalvik/");
+        result.append(System.getProperty("java.vm.version")); // such as 1.1.0
+        result.append(" (Linux; U; Android ");
+
+        String version = Build.VERSION.RELEASE; // "1.0" or "3.4b5"
+        result.append(version.length() > 0 ? version : "1.0");
+
+        // add the model for the release build
+        if ("REL".equals(Build.VERSION.CODENAME)) {
+            String model = Build.MODEL;
+            if (model.length() > 0) {
+                result.append("; ");
+                result.append(model);
+            }
+        }
+        String id = Build.ID; // "MASTER" or "M4-rc20"
+        if (id.length() > 0) {
+            result.append(" Build/");
+            result.append(id);
+        }
+        result.append(")");
+        return result.toString();
+    }
+
+
+    /** Returns the consumer friendly device name */
+    public static String getDeviceName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.startsWith(manufacturer)) {
+            return capitalize(model);
+        }
+        return capitalize(manufacturer) + "/" + model;
+    }
+
+    private static String capitalize(String str) {
+        if (TextUtils.isEmpty(str)) {
+            return str;
+        }
+        char[] arr = str.toCharArray();
+        boolean capitalizeNext = true;
+
+        StringBuilder phrase = new StringBuilder();
+        for (char c : arr) {
+            if (capitalizeNext && Character.isLetter(c)) {
+                phrase.append(Character.toUpperCase(c));
+                capitalizeNext = false;
+                continue;
+            } else if (Character.isWhitespace(c)) {
+                capitalizeNext = true;
+            }
+            phrase.append(c);
+        }
+
+        return phrase.toString();
+    }
 
 
 
